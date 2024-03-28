@@ -18,7 +18,7 @@ To begin the test, you must fork this repository and perform the following tasks
 
    - You can add hyperlinks, images, code blocks, etc.
    - You must add a tab favicon to the documentation.
-   - You can change the links on the top navigation bar to any relevant links.
+   - You can change the links on the top navigation bar to any relevant links. :D
 
 4. Commit the changes to your forked repository and notify your Talent Acquisition Specialist to begin the review process.
 
