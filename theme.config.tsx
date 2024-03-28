@@ -2,8 +2,10 @@ import React from 'react'
 import { DocsThemeConfig } from 'nextra-theme-docs'
 
 const config: DocsThemeConfig = {
-  logo: <p style={{fontSize: '6px', width: '80px', textAlign: 'center'}}>
-    <img src="https://files.readme.io/746bce3-small-vortex_eos_white-03.png" width="80px" height="150px"/>Vortex by Christian</p>,
+  logo: <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', height: '50px' }}>
+    <img src="https://files.readme.io/1cab609-vbc.png" alt="Vortex Logo" style={{ width: '75px', height: '75px' }} />
+    <p style={{ fontSize: '8px', textAlign: 'center', margin: '0' }}></p>
+  </div>,
   project: {
     link: 'https://github.com/chericito/tech-writing-test.git',
   },
@@ -14,6 +16,12 @@ const config: DocsThemeConfig = {
   footer: {
     text: 'Writer: Christian Arango',
   },
+  head: (
+    <>
+      <link rel="icon" type="image/png" href="https://files.readme.io/1cab609-vbc.png" />
+    </>
+  ),
 }
 
 export default config
+

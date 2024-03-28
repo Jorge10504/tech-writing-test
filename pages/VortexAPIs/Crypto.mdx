@@ -14,7 +14,7 @@ To hash your data using HMAC, send a POST request with your data payload and spe
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -41,7 +41,7 @@ For decryption, you will pass the encrypted object to the API without the need f
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -68,7 +68,7 @@ To generate a new session key, you only need to make a POST request to the sessi
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -104,7 +104,7 @@ When you encrypt data using the Vortex Crypto API, the response includes the enc
 
 **Encryption Response Example:**
 
-```json
+```json copy
 {
   "data": {
     "key": 1234567,
@@ -133,7 +133,7 @@ For those needing to specify the encryption method explicitly, aes256skv1 refere
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Request-ID: YOUR_REQUEST_ID
 Authorization: Bearer YOUR_API_TOKEN
@@ -154,7 +154,7 @@ To simplify the encryption process and ensure the use of the latest AES standard
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Request-ID: YOUR_REQUEST_ID
 Authorization: Bearer YOUR_API_TOKEN
@@ -175,7 +175,7 @@ When dealing with non-UTF8 text, it's essential to specify the encoding used. Th
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Request-ID: YOUR_REQUEST_ID
 Authorization: Bearer YOUR_API_TOKEN
@@ -197,7 +197,7 @@ For enhanced security and efficiency, you can encrypt data using a session key. 
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -230,7 +230,7 @@ For users who require specific control over the encryption method, `hsmv1` allow
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -252,7 +252,7 @@ The `hsm` alias points to the most current version of the HSM encryption algorit
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -274,7 +274,7 @@ Similar to AES, when working with non-UTF8 text, specifying the encoding ensures
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID
@@ -297,7 +297,7 @@ For specific encryption needs, the API allows for the use of a custom HSM key. T
 
 **Request Example:**
 
-```http
+```http copy
 POST /dispatch HTTP/1.1
 Host: localhost:9200
 Request-ID: YOUR_REQUEST_ID

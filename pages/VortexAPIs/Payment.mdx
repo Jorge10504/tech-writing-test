@@ -8,7 +8,7 @@ The Vortex Envelope encapsulates ACH payment requests, ensuring each transaction
 
 #### Envelope Structure
 
-```json
+```json copy
 {
     "arguments": [
         {
@@ -32,7 +32,7 @@ Below is a sample payload for an ACH payment request, showcasing the required st
 
 #### Sample ACH Payment Request
 
-```json
+```json copy
 {
  "arguments": [
   {
@@ -73,7 +73,7 @@ Upon successfully processing an ACH payment request, Vortex returns a response t
 
 #### Sample ACH Payment Response
 
-```json
+```json copy
 {
     "code": 200,
     "error": null,
@@ -99,7 +99,7 @@ Integrating ACH payment functionalities within your applications using the Vorte
 
 This example illustrates the process of creating an ACH payment transaction using the `PaymentClient` from the Vortex broker client library. 
 
-```javascript
+```javascript copy
 const broker = require('@pps/broker-client');
 const client = new broker.PaymentClient('EOS_YOUR_TENANT_TOKEN');
 
@@ -134,7 +134,7 @@ createACHTransaction();
 
 Retrieving details of an existing ACH transaction is straightforward with the `PaymentClient`. The following example demonstrates how to query for transaction information based on an external ID.
 
-```javascript
+```javascript copy
 const {PaymentClient} = require('@pps/broker-client');
 const client = new PaymentClient('EOS_TENANT_TOKEN', 'environment');
 

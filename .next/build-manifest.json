@@ -12,10 +12,15 @@
   ],
   "rootMainFiles": [],
   "pages": {
-    "/VortexAPIs/Crypto": [
+    "/Other_Products": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/VortexAPIs/Crypto.js"
+      "static/chunks/pages/Other_Products.js"
+    ],
+    "/VortexAPIs/Payment": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/VortexAPIs/Payment.js"
     ],
     "/VortexAPIs/Storage": [
       "static/chunks/webpack.js",

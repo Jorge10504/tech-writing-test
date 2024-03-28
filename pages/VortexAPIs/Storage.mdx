@@ -60,7 +60,7 @@ An example of a broker call for a read operation on the `merchant_account` entit
 
 **Example:**
 
-```json
+```json copy
 POST https://pps-storage-api-broker:80
 {
  "dispatch": {
@@ -78,7 +78,10 @@ In this example, the payload `eq(id,2933752)` instructs the Storage Broker to re
 Understanding the data persistence flow is crucial for developers working with the Vortex Storage API. This flow outlines the journey of data from the moment it is sent to the Storage Broker, through processing and validation stages, to its eventual persistence and notification. Below is a visual representation of this flow:
 
 ### Data Flow Diagram
-![Data Flow Diagram](https://files.readme.io/6d10b19-DataFlow.PNG "Data Flow Diagram Example")
+
+<div style={{ textAlign: "right" }}>
+    <img src="https://files.readme.io/6d10b19-DataFlow.PNG" alt="Test" width="500" height="600" style={{ border: "2px solid black", margin: "10px" }} />
+</div>
 
 This diagram illustrates the path data takes within the system, highlighting key stages such as processing, validation, persistence, and notification.
 
@@ -137,7 +140,7 @@ To initiate communication with the Storage Broker via WebSocket, a new `StorageW
 
 #### Example
 
-```javascript
+```javascript copy
 const {StorageWsClient} = require('@pps/broker-client');
 const client = new StorageWsClient(tenantToken, virtualEnv);
 await client.open(); // Establish the WebSocket connection
