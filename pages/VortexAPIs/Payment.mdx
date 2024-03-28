@@ -1,0 +1,183 @@
+## ACH
+
+Vortex introduces a structured approach to managing Automated Clearing House (ACH) payment requests and responses, ensuring reliable communication over WebSocket. Unlike traditional HTTP request/response models, WebSocket communication lacks inherent request-response pairing. Vortex addresses this by implementing an envelope system, which wraps each ACH payment request, allowing for precise response tracking and handling.
+
+### Vortex Envelope for ACH Payments
+
+The Vortex Envelope encapsulates ACH payment requests, ensuring each transaction is uniquely identifiable and traceable. This method facilitates the correlation of requests with their corresponding responses, an essential feature for robust payment processing systems.
+
+#### Envelope Structure
+
+```json
+{
+    "arguments": [
+        {
+            // Payment transaction payload as JSON
+        }
+    ],
+    "procedure": "ach.create",
+    "class": "rpc",
+    "requestId": "UUID"
+}
+```
+
+- **arguments**: Contains the ACH payment request data.
+- **procedure**: Specifies the action to be performed, e.g., `ach.create` for creating ACH transactions.
+- **class**: Indicates the type of message, in this case, `rpc` for Remote Procedure Call.
+- **requestId**: A unique identifier (UUID) for the request, facilitating tracking and response pairing.
+
+### Implementing ACH Payment Requests
+
+Below is a sample payload for an ACH payment request, showcasing the required structure and data elements for processing payments through Vortex.
+
+#### Sample ACH Payment Request
+
+```json
+{
+ "arguments": [
+  {
+   "processor": "ach.com",
+   "externalId": "477547113252146",
+   "standardEntryClass": "CTX",
+   "amount": 20.75,
+   "type": "credit",
+   "subType": "none",
+   "description": "TestBuyerA",
+   "descriptiveDate": "2020-07-09T14:52:39.287Z",
+   "effectiveDate": "2020-07-09T14:52:39.287Z",
+   "company": {
+    "identification": "1472441368",
+    "name": "TestBuyerA"
+   },
+   "receiver": {
+    "routingNumber": "051000020",
+    "accountNumber": "55522244444",
+    "accountType": "checking",
+    "identification": "TestSIDC",
+    "name": "TestSupplierC"
+   },
+   "addenda": [
+    {"description": "TestBuyerA"}
+   ]
+  }
+ ],
+ "procedure": "ach.create",
+ "class": "rpc",
+ "requestId": "Field_Level_ACH0.1"
+}
+```
+
+### Understanding the Response
+
+Upon successfully processing an ACH payment request, Vortex returns a response that includes a unique ID for the transaction. This ID, which is base64 encoded, serves multiple purposes, including log tracing and transaction tracking.
+
+#### Sample ACH Payment Response
+
+```json
+{
+    "code": 200,
+    "error": null,
+    "value": "BHMEkrL54KVibGsDGw4yBg==",
+    "class": "response",
+    "id": "9d32128a-f09f-5fec-b65a-5865a21de1d1",
+    "requestId": "Field_Level_ACH0.1"
+}
+```
+
+- **code**: HTTP status code indicating the outcome of the request.
+- **error**: Any error messages, if applicable.
+- **value**: The unique ID of the payment request, encoded in base64.
+- **class**: The type of message, here `response`, indicating a reply to the initial request.
+- **id**: A unique identifier for the response itself.
+- **requestId**: The original request ID, allowing for easy matching of requests and responses.
+
+### Implementing ACH Payments with the Vortex Broker Client Library
+
+Integrating ACH payment functionalities within your applications using the Vortex platform is streamlined with the broker client library. Below are JavaScript examples demonstrating how to initiate ACH payment transactions and retrieve transaction details using the library.
+
+#### Creating ACH Payments
+
+This example illustrates the process of creating an ACH payment transaction using the `PaymentClient` from the Vortex broker client library. 
+
+```javascript
+const broker = require('@pps/broker-client');
+const client = new broker.PaymentClient('EOS_YOUR_TENANT_TOKEN');
+
+async function createACHTransaction() {
+    try {
+        await client.open();
+        const transaction = {
+            // Define your transaction details here
+            // Refer to the sample payload for structure
+        };
+        const response = await client.rpc.ach.create(transaction);
+        console.log(response.id + ': ' + response.message);
+    } finally {
+        await client.close();
+    }
+}
+
+// Execute the transaction creation function
+createACHTransaction();
+```
+
+**Key Steps:**
+
+1. Initialize the `PaymentClient` with your tenant token.
+2. Open a connection to the broker.
+3. Define your transaction details.
+4. Call the `ach.create` RPC method with your transaction object.
+5. Log the response, which includes the transaction ID and message.
+6. Ensure the client connection is closed.
+
+#### Retrieving ACH Payment Information
+
+Retrieving details of an existing ACH transaction is straightforward with the `PaymentClient`. The following example demonstrates how to query for transaction information based on an external ID.
+
+```javascript
+const {PaymentClient} = require('@pps/broker-client');
+const client = new PaymentClient('EOS_TENANT_TOKEN', 'environment');
+
+async function retrieveACHTransaction() {
+    try {
+        await client.open();
+        const id = 'some-external-id'; // Specify the external ID of the transaction
+        const transactionDetails = await client.rpc.ach.get(id);
+        console.log(transactionDetails);
+    } finally {
+        await client.close();
+    }
+}
+
+// Execute the transaction retrieval function
+retrieveACHTransaction();
+```
+
+**Key Steps:**
+
+1. Instantiate the `PaymentClient` with the appropriate credentials.
+2. Open the connection to start communication with the broker.
+3. Use the `ach.get` method, passing the external ID of the transaction you wish to query.
+4. Output the transaction details to the console or handle as needed.
+5. Close the client connection to clean up resources.
+
+## Batch Processing and Timing
+
+ACH payments are grouped and processed in batches, utilizing the NACHAID (National Automated Clearing House Association ID) for organization. Batch files are generated and transmitted to ACH.com every 15 minutes, starting from the top of the hour. The scheduling ensures that transactions are promptly handled and forwarded for processing. ACH.com, the processing entity, stipulates cutoff times for the submissions, dictating the latest point at which payments can be included in a batch for processing on a given day.
+
+#### External ID Usage
+
+The `externalId` serves as a unique identifier for transactions, provided by the customer. This ID is integral throughout the transaction's lifecycle, from initiation through to processing by ACH.com. It enables tracking and status updates for the transaction, facilitating communication and query handling between the client and ACH.com.
+
+## Error Codes and Troubleshooting
+
+Understanding common error messages and their meanings is crucial for efficient debugging and error handling. Below is a table outlining some potential errors you might encounter when working with ACH payments through the Vortex platform.
+
+| Error Message              | Description                                                                                                                                                                |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| payment must be defined    | Indicates that an ACH payment value has not been provided in the transaction request. Ensure your request includes a valid payment object.                                 |
+| model validations failure  | This error occurs when the schema of the provided ACH payment does not match the expected format. Verify the structure of your payment object against the required schema. |
+| externalId must be defined | The `externalId` is missing from your request. This ID is crucial for transaction tracking and must be included in both payment submissions and status queries.            |
+| payment not found          | The specified ACH payment could not be located with the provided `externalId`. Ensure the `externalId` is correct and that the payment has been successfully submitted.    |
+
+When encountering errors, refer to this guide to understand the issue's nature and take appropriate corrective actions. Ensuring that your payment requests are correctly formatted and include all necessary information will minimize errors and streamline the ACH payment process.

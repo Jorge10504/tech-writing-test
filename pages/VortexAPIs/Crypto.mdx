@@ -1,0 +1,317 @@
+# Crypto
+
+The Crypto Broker service within the Vortex platform offers a suite of cryptographic functionalities designed to secure your application's data. This section details the hashing and decrypting capabilities provided by the Crypto API, ensuring data integrity and confidentiality.
+
+## Hashing
+
+### Overview
+
+The Crypto API's hashing function allows for the generation of HMAC (Hash-based Message Authentication Code) hashes of your data. This cryptographic operation ensures data integrity and authenticity by producing a fixed-size string (the hash), which is unique to the input data. HMAC hashing combines the hash function with a secret cryptographic key, adding an additional layer of security.
+
+### How to Perform HMAC Hashing
+
+To hash your data using HMAC, send a POST request with your data payload and specify the operation as "hash". You will need to include your API token for authentication.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "hash"
+  },
+  "payload": "hash me please"
+}
+```
+
+## Decrypting Data
+
+### Overview
+
+Decrypting data through the Crypto API requires a valid, signed encryption object. This object typically comes from the Vortex Storage Broker, ensuring a seamless integration between storage and cryptographic operations. The API enforces strict security measures, refusing decryption unless both the signature and a corresponding authentication token are present and valid.
+
+### How to Decrypt Data
+
+For decryption, you will pass the encrypted object to the API without the need for additional parameters beyond the necessary authentication headers and the payload. The API then verifies the signature and token before proceeding with decryption.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "decrypt"
+  },
+  "payload": "YOUR_SIGNED_DATA"
+}
+```
+
+## Session Keys
+
+### Overview
+
+Session keys are an essential aspect of cryptographic operations, providing temporary encryption keys that can be used for a session's duration. The Vortex Crypto API includes a session dispatcher for creating new session keys, simplifying the process of managing encryption keys securely.
+
+### Generating New Session Keys
+
+To generate a new session key, you only need to make a POST request to the session dispatcher endpoint without any additional parameters. The operation is straightforward and requires minimal input, focusing on ease of use and security.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "session"
+  }
+}
+```
+
+Upon successful execution of this request, the API will return the ID of the newly created session as a string. This session ID can then be used in subsequent cryptographic operations that require or support session-based encryption keys.
+
+## Encrypting Data
+
+The Vortex Crypto API provides a comprehensive encryption solution that ensures the security of your data. Upon encrypting data, the API returns an encrypted object alongside a hash and mask field. The hashing is performed using the API's HMAC algorithm, which guarantees the integrity and authenticity of your data.
+
+### Masking Algorithm
+
+The masking feature offers additional security by revealing only a portion of the encrypted string, based on its length:
+
+- **For strings of 9 characters or more**: the last 4 characters are returned.
+- **For strings of 5 to 8 characters in length**: the last 2 characters are returned.
+- **For strings shorter than 5 characters**: no characters are returned.
+
+This algorithm ensures a balance between security and the need for partial data visibility.
+
+### Encryption Example
+
+When you encrypt data using the Vortex Crypto API, the response includes the encrypted data, a hash value representing the data's integrity, and a mask derived from the encrypted string. 
+
+**Encryption Response Example:**
+
+```json
+{
+  "data": {
+    "key": 1234567,
+    "iv": null,
+    "data": "c29tZSBlbmNyeXB0ZWQgZGF0YQ==",
+    "encoding": "utf8"
+  },
+  "hash": "c29tZSBoYXNoIHZhbHVl",
+  "mask": "1234"
+}
+```
+
+In this example, `data` is the base64 encoded string of the encrypted data. The `key` and `iv` (initialization vector) are used in the encryption process, though `iv` may be null depending on the encryption method used. The `hash` provides a HMAC hash of the encrypted data, ensuring its integrity, and the `mask` shows the last few characters of the encrypted string, as defined by the masking algorithm.
+
+### AES
+
+#### Overview
+
+AES (Advanced Encryption Standard) is the cornerstone of modern cryptographic security and is the recommended encryption method within the Vortex Crypto API. It offers a balance of performance and security, making it suitable for a wide range of applications. The API supports encryption using the latest version of AES, specifically aes256skv1, as well as providing an alias method for ease of use.
+
+#### Encrypting with AES
+
+##### Using aes256skv1
+
+For those needing to specify the encryption method explicitly, aes256skv1 references the latest version of AES encryption, ensuring you utilize strong and up-to-date cryptographic standards.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "aes256skv1"
+  },
+  "payload": "my test data"
+}
+```
+
+##### Using the aes Alias
+
+To simplify the encryption process and ensure the use of the latest AES standard, the `aes` alias can be utilized. This approach automatically selects the most current version of AES implemented by the API.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "aes"
+  },
+  "payload": "my test data"
+}
+```
+
+##### Encrypting Encoded Data
+
+When dealing with non-UTF8 text, it's essential to specify the encoding used. This ensures the data is correctly interpreted and encrypted by the API.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "aes",
+    "encoding": "base64"
+  },
+  "payload": "bXkgdGVzdCBkYXRh"
+}
+```
+
+##### Encrypting with a Session Key
+
+For enhanced security and efficiency, you can encrypt data using a session key. This method is particularly useful in scenarios requiring multiple encryptions within the same session.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "aes",
+    "sessionId": "YOUR_SESSION_ID"
+  },
+  "payload": "bXkgdGVzdCBkYXRh"
+}
+```
+
+This segment of the Crypto API documentation provides comprehensive details on encrypting data using AES, offering developers flexibility and security for their application's data encryption needs.
+
+### HSM
+
+#### Overview
+
+The Hardware Security Module (HSM) offers an additional layer of security for encrypting data. While AES is preferred for its balance of security and performance, using HSM for encryption is an option within the Vortex Crypto API for scenarios requiring hardware-based security features. The API supports direct encryption with HSM using either a specific version or an alias for the latest implementation.
+
+#### Using HSM for Encryption
+
+##### Encrypting with hsmv1
+
+For users who require specific control over the encryption method, `hsmv1` allows for encryption directly against a dedicated Hardware Security Module. This method ensures that data encryption processes are executed within a physically secure environment.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "hsmv1"
+  },
+  "payload": "my test data"
+}
+```
+
+##### Using the hsm Alias
+
+The `hsm` alias points to the most current version of the HSM encryption algorithm implemented by the API. This ensures that your encryption is always up to date with the latest hardware security standards.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "hsm"
+  },
+  "payload": "my test data"
+}
+```
+
+##### Encrypting Encoded Data with HSM
+
+Similar to AES, when working with non-UTF8 text, specifying the encoding ensures the data is correctly encrypted by the HSM.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "hsm",
+    "encoding": "base64"
+  },
+  "payload": "bXkgdGVzdCBkYXRh"
+}
+```
+
+##### Using Your Own Key
+
+For specific encryption needs, the API allows for the use of a custom HSM key. This key must be pre-configured and recognized by the system.
+
+**Request Example:**
+
+```http
+POST /dispatch HTTP/1.1
+Host: localhost:9200
+Request-ID: YOUR_REQUEST_ID
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "dispatch": {
+    "operation": "encrypt",
+    "method": "hsm",
+    "keyAlias": "MY KEY HERE"
+  },
+  "payload": "my test data"
+}
+```
+
+This section of the Crypto API documentation guides you through the process of utilizing HSM for data encryption, offering an alternative to AES encryption for scenarios where hardware-based security is paramount.

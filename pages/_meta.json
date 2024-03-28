@@ -1,7 +1,6 @@
 {
-  "index": "Introduction",
-  "another": "Another Page",
-  "advanced": "Advanced (A Folder)",
+  "index": "Vortex: Enhanced Version",
+  "VortexAPIs": "Vortex APIs",
   "about": {
     "title": "About",
     "type": "page"

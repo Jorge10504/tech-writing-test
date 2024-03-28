@@ -1,0 +1,166 @@
+# Storage
+
+The Storage Broker is an integral part of the Vortex platform, providing a robust and flexible solution for managing data storage. It simplifies interactions with various storage mechanisms, whether it be databases, indexes, or other storage entities, through a unified API interface. This section outlines how to make calls to the Storage Broker, detailing the structure of requests and the operations you can perform.
+
+## Call to the Storage Broker
+
+### Request Structure
+
+All interactions with the Storage Broker are conducted through HTTP requests that contain two main components: a dispatch and a payload. The dispatch specifies the instructions for the broker, indicating where and how the data should be handled. The payload carries the data to be processed according to the dispatch instructions.
+
+### Understanding the Dispatch
+
+The dispatch within your request plays a crucial role, guiding the Storage Broker on how to manage the data you are sending. It is composed of two essential parts: the entity and the operation.
+
+#### Entity: Directing Your Data
+
+The entity in the dispatch directs your data to the appropriate storage location, such as a table, index, or topic. This routing is based on your configuration and the specified operation. The choice of entity effectively determines where your data is stored or retrieved from within the Vortex ecosystem.
+
+- **Example**: If the entity is `merchant_account` and the operation is `Search`, the broker targets the ElasticSearch index associated with `merchant_account`.
+
+#### Operation: Defining Your Action
+
+The operation signifies the action you intend to perform with your data. The Storage Broker supports several fundamental operations, including:
+
+- **Create**: Adds new data to the specified entity.
+- **Read**: Retrieves data from the specified entity.
+- **Search**: Conducts a search within the specified entity based on provided criteria.
+- **Update**: Modifies existing data within the entity. This operation is similar to create but differs in the payload details.
+- **Delete**: Removes data from the entity. While mechanically similar to create, the intent and payload content vary.
+
+The operation part of your dispatch tells the Storage Broker exactly what you want to do with your data, ensuring precise and efficient data management.
+
+# Payload
+
+The payload in requests to the Storage Broker represents the data you wish to manipulate or the criteria for your queries. Tailored to the operation specified in the dispatch, the payload's structure varies, reflecting the nature of the intended action—whether creating, updating, deleting, reading, or searching data.
+
+## The Role of the Payload
+
+The payload is the core component of your request, containing either the data for creation or modification or the query parameters for retrieval or search operations. Its format and content are contingent upon the operation being performed, as outlined below:
+
+### Read Operations
+
+For read operations, particularly from databases like MemSQL, the payload is structured as a query using the RQL (Resource Query Language). RQL is a powerful and flexible query language designed to facilitate complex querying operations.
+
+- **Learn more about RQL**: [RQL Language Guide](https://github.com/persvr/rql)
+
+### Search Operations
+
+Search operations, especially when interacting with Elasticsearch, leverage the Query DSL (Domain-Specific Language) provided by Elasticsearch. This language enables the crafting of intricate search queries to navigate and retrieve data from Elasticsearch indices efficiently.
+
+- **Learn more about Query DSL**: [Elasticsearch Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/6.2/query-dsl.html)
+
+### Create, Update, and Delete Operations
+
+For operations that modify data—such as creating, updating, or deleting—the payload is a JSON object representing the data you wish to work with. This data is passed directly to the broker, which then processes it according to the specified operation and entity.
+
+## Example Broker Call
+
+An example of a broker call for a read operation on the `merchant_account` entity is shown below. This example demonstrates how the dispatch and payload are combined within a single request to perform a specific action—in this case, reading data using an RQL query.
+
+**Example:**
+
+```json
+POST https://pps-storage-api-broker:80
+{
+ "dispatch": {
+   "entity": "merchant_account",
+   "operation": "read"
+ },
+ "payload": "eq(id,2933752)"
+}
+```
+
+In this example, the payload `eq(id,2933752)` instructs the Storage Broker to retrieve records from the `merchant_account` entity where the `id` equals `2933752`.
+
+## Data Persistence Flow Overview
+
+Understanding the data persistence flow is crucial for developers working with the Vortex Storage API. This flow outlines the journey of data from the moment it is sent to the Storage Broker, through processing and validation stages, to its eventual persistence and notification. Below is a visual representation of this flow:
+
+### Data Flow Diagram
+![Data Flow Diagram](https://files.readme.io/6d10b19-DataFlow.PNG "Data Flow Diagram Example")
+
+This diagram illustrates the path data takes within the system, highlighting key stages such as processing, validation, persistence, and notification.
+
+## Processing Stage
+
+When delta envelopes (data updates) are sent to the Storage Broker, they enter the processing stage. This stage involves several critical steps to ensure data integrity and security:
+
+1. **Entity Configuration Lookup**: The system retrieves the configuration for the entity based on the tenant's API settings.
+2. **Validation**: The data undergoes validation checks to ensure compliance with defined schemas and rules.
+3. **Entity Verification**: The system verifies that the tenant has an entity matching the provided key.
+4. **Persistence Topic Location**: It locates the appropriate topic for data persistence related to the specified entity.
+5. **Permission Checks**: The broker checks if the user or role has sufficient permissions for the operation.
+6. **Apply Permission Restrictions**: Any necessary permission restrictions are applied to the delta payload.
+7. **Data Encryption**: Sensitive or critical data within the payload is encrypted to maintain confidentiality.
+
+## Notification Stage
+
+After data has been successfully processed and persisted, it moves to the notification stage. This stage involves alerting relevant systems or users about the update. However, if no notification methods have been configured for the entity, this stage will be skipped, streamlining the process for entities where notifications are not necessary.
+
+## Action Topics
+
+For tenants requiring updates on performed actions, action topics can be configured. These topics provide a channel for receiving notifications about data changes, with two types of action topics available:
+
+- **Global Action Topic**: Receives notifications about every persisted message, regardless of the message's origin.
+- **Local Action Topic**: Only receives messages originating from the same data center, offering localized updates while being identical in function to the global topic.
+
+Action topics are entity-specific and optional, offering flexibility in how updates and notifications are handled.
+
+# Websocket Support for the Storage Broker
+
+The Vortex Storage Broker API now supports WebSocket communication, enabling real-time, bidirectional communication between clients and the Storage Broker. This enhancement is facilitated through the `StorageWsClient`, an extension of the basic WebSocket client tailored for the Storage API. This document outlines the setup, configuration, and usage of the `StorageWsClient`.
+
+## Features
+
+The `StorageWsClient` integrates several plugins to enhance its functionality, ensuring efficient and reliable communication with the Storage Broker:
+
+- **Protocol Validation Plugin**: Ensures that communication adheres to predefined protocols, enhancing security and data integrity.
+- **Smart Reconnection Plugin**: Automatically attempts to re-establish connections in case of disconnection, ensuring continuous communication without manual intervention.
+- **RPC Plugin**: Enables Remote Procedure Calls (RPC), allowing clients to execute functions on the server side directly from the client side.
+
+## Initialization
+
+### Creating a New StorageWsClient
+
+To initiate communication with the Storage Broker via WebSocket, a new `StorageWsClient` instance must be created. This instance requires specific configuration parameters to establish the connection successfully.
+
+#### Initializing a StorageWsClient Instance
+
+**Parameters:**
+
+| Name        | Type                           | Attributes | Default                             | Description                                                                                       |
+| ----------- | ------------------------------ | ---------- | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| tenantToken | string                         |            |                                     | Tenant API Token for secure communication with tenant services. Defaults to reading from secrets. |
+| virtualEnv  | string                         | Optional   |                                     | Specifies the virtual environment for the broker, aiding in environment-specific configurations.  |
+| agent       | external:ServiceDiscoveryAgent | Optional   | require('@pps/svc-discovery').agent | Service discovery agent to locate a broker instance, streamlining the connection process.         |
+
+#### Example
+
+```javascript
+const {StorageWsClient} = require('@pps/broker-client');
+const client = new StorageWsClient(tenantToken, virtualEnv);
+await client.open(); // Establish the WebSocket connection
+// Now you can start sending RPCs or other WebSocket communications
+await client.close(); // Close the WebSocket connection when done
+```
+
+### Utilizing the Global Tenant Token
+
+For convenience, the `StorageWsClient` can also be instantiated using a global tenant token, reducing the need for manual token management.
+
+#### Initializing `StorageWsClient` with Global Tenant Token
+
+Returns a `Promise` that resolves to a `StorageWsClient` instance, configured with the global tenant token.
+
+**Parameters:**
+
+| Name       | Type                           | Attributes | Description                                                         |
+| ---------- | ------------------------------ | ---------- | ------------------------------------------------------------------- |
+| virtualEnv | string                         | Optional   | Virtual environment name for specific configuration.                |
+| agent      | external:ServiceDiscoveryAgent | Optional   | Service discovery agent for locating a broker instance efficiently. |
+
+#### Return Value
+
+- **Type**: `Promise.<module:broker-client.StorageWsClient>`
+- **Description**: Asynchronously returns a new `StorageWsClient` instance using the globally configured tenant token.
